@@ -1,2 +1,4 @@
 streamlit
-pip install dotenv
+requests
+python-dotenv
+pandas
