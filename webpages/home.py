@@ -12,6 +12,7 @@ def stocky_page():
     if st.button("Submit"):
         if ticker:
             # Fetch stock details
+            print
             stock_details = get_stock_details(ticker)
             time_series = get_stock_time_series(ticker)
             

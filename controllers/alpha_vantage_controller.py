@@ -1,9 +1,14 @@
 import os
 import requests
+import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
-API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+if "general" in st.secrets:
+    API_KEY = st.secrets["general"]["ALPHA_VANTAGE_API_KEY"]
+else:
+    st.error("error: No API key found. Enter in secrets.toml.")
+
 
 BASE_URL = "https://www.alphavantage.co/query"
 
@@ -21,6 +26,8 @@ def get_stock_details(ticker):
         
         if "Name" in data:
             return data
+        elif "Information" in data:
+            return {"error": data.get("Information")}
         else:
             return {"error": "No data found for the given ticker. Please check the symbol."}
     
@@ -49,7 +56,7 @@ def get_stock_time_series(ticker):
         return {"error": str(e)}
 
 
-def get_news_sentiment(ticker, sort="LATEST", time_from=None, time_to=None, limit=25):
+def get_news_sentiment(ticker, sort="LATEST", time_from=None, time_to=None, limit=50):
     params = {
         "function": "NEWS_SENTIMENT",
         "tickers": ticker,
@@ -63,11 +70,15 @@ def get_news_sentiment(ticker, sort="LATEST", time_from=None, time_to=None, limi
         params["time_to"] = time_to
     
     try:
+        prepared_request = requests.Request("GET", BASE_URL, params=params).prepare()
+        print("Request URL:", prepared_request.url)
         response = requests.get(BASE_URL, params=params)
         response.raise_for_status()
         data = response.json()
         if "feed" in data:
             return data["feed"]
+        elif "Information" in data:
+            return {"error": data.get("Information")}
         else:
             return {"error": data.get("message", "No data available for the given parameters.")}
     except requests.exceptions.RequestException as e:

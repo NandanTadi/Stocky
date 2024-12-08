@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from controllers.alpha_vantage_controller import get_news_sentiment
+from core.utils import dateToString, formatDateToHuman
 
 def stocklyze_page():
     st.title("Stocklyze 🧠")
@@ -9,15 +10,20 @@ def stocklyze_page():
     # User inputs
     ticker = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA):")
     sort_by = st.selectbox("Sort By", ["LATEST", "EARLIEST", "RELEVANCE"])
-    time_from = st.text_input("Time From (YYYYMMDDTHHMM, optional):")
-    time_to = st.text_input("Time To (YYYYMMDDTHHMM, optional):")
-    limit = st.slider("Limit Results", 1, 20, 1)
+    time_from = st.date_input("Select Start Date (optional)")
+    time_to = st.date_input("Select End Date (time_to)")
+    limit = st.slider("Limit Results", 50, 100, 50)
+
+    if time_from:
+        time_from_str = time_from.strftime("%Y%m%dT%H%M")
+
+    if time_to:
+        time_to_str = time_to.strftime("%Y%m%dT%H%M")
 
     if st.button("Fetch News Sentiment"):
         if ticker:
             # Fetch news sentiment data
-            print(limit)
-            news_data = get_news_sentiment(ticker, sort_by, time_from, time_to, limit)
+            news_data = get_news_sentiment(ticker, sort_by, time_from_str, time_to_str, limit)
             
             if "error" in news_data:
                 st.error(news_data["error"])
@@ -28,7 +34,7 @@ def stocklyze_page():
                     articles.append({
                         "Title": article["title"],
                         "Source": article["source"],
-                        "Published At": article["time_published"],
+                        "Published At": formatDateToHuman(article["time_published"]),
                         "Relevance Score": max(
                             float(topic["relevance_score"]) for topic in article["topics"]
                         ),
