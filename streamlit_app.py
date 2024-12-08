@@ -1,6 +1,13 @@
 import streamlit as st
+from webpages.home import stocky_page
+from webpages.stockylze import stocklyze_page
 
-st.title("🎈 My new app")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+# Sidebar for page navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Home", "Stocklyze"])
+
+# Render the selected page
+if page == "Home":
+    stocky_page()
+elif page == "Stocklyze":
+    stocklyze_page()
