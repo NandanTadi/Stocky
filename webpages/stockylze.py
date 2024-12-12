@@ -4,6 +4,7 @@ from controllers.alpha_vantage_controller import get_news_sentiment
 from core.utils import dateToString, formatDateToHuman
 from core.service import scrape_article_text, get_sentiment_pipeline
 from core.customModel import calculate_custom_sentiment
+from core.stockylzePredicter import predict
 from bs4 import BeautifulSoup
 import requests
 
@@ -39,34 +40,60 @@ def stocklyze_page():
                     st.error(news_data["error"])
                 else:
                     articles = []
+                    sentiments = []
+                    relevance_scores = []
+                    custom_sentiments = []
+
                     for article in news_data:
                         full_text = scrape_article_text(article["url"])
                         sentiment = sentiment_pipeline(full_text[:512])  # Truncate text to 512 tokens
                         sentiment_label = sentiment[0]["label"]
                         sentiment_score = sentiment[0]["score"]
 
-                        # Calculate custom sentiment
-                        custom_label, custom_scores = calculate_custom_sentiment(
-                            full_text, positive_keywords, neutral_keywords, negative_keywords
-                        )
+                        # Collect FinBERT sentiment and relevance
+                        relevance_score = max(float(topic["relevance_score"]) for topic in article["topics"])
+                        sentiments.append(sentiment_score)
+                        relevance_scores.append(relevance_score)
+
+                        # Calculate custom sentiment if keywords are provided
+                        if positive_keywords or neutral_keywords or negative_keywords:
+                            custom_label, custom_scores = calculate_custom_sentiment(
+                                full_text, positive_keywords, neutral_keywords, negative_keywords
+                            )
+                            custom_sentiments.append(custom_scores)
+                        else:
+                            custom_sentiments = None
 
                         articles.append({
                             "Title": article["title"],
                             "Source": article["source"],
                             "Published At": formatDateToHuman(article["time_published"]),
-                            "Relevance Score": max(
-                                float(topic["relevance_score"]) for topic in article["topics"]
-                            ),
+                            "Relevance Score": relevance_score,
                             "FinBERT Sentiment Label": sentiment_label,
                             "FinBERT Sentiment Score": sentiment_score,
-                            "Custom Sentiment Label": custom_label,
-                            "Custom Sentiment Scores": custom_scores,
+                            "Custom Sentiment Label": custom_label if custom_scores else "N/A",
+                            "Custom Sentiment Scores": custom_scores if custom_scores else {},
                             "Summary": article["summary"],
                             "Full Text": full_text,
                             "URL": article["url"]
                         })
 
-                    # Convert articles to DataFrame
+                    # Use StockylzePredictor to make a prediction
+                    prediction_result = predict(sentiments, relevance_scores, custom_sentiments)
+
+                    # Display Stockylze Prediction at the top
+                    prediction_color = (
+                        "green" if prediction_result["prediction"] == "Likely to Increase" 
+                        else "red" if prediction_result["prediction"] == "Likely to Decrease" 
+                        else "gray"
+                    )
+                    st.markdown(
+                        f"<h3>Stockylze Prediction: <span style='color:{prediction_color}'>{prediction_result['prediction']}</span></h3>", 
+                        unsafe_allow_html=True
+                    )
+
+
+                    # Convert articles to a DataFrame
                     df = pd.DataFrame(articles)
 
                     # Display detailed sentiment analysis for each article
