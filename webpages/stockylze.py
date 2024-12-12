@@ -7,34 +7,18 @@ import requests
 
 def scrape_article_text(url):
     """Fetch and extract the full text of an article from its URL."""
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-        potential_tags = ['article', 'div', 'main']
-        potential_classes = ['content', 'article-content', 'post-content', 'entry-content', 'main-content']
-        content = ""
+    # Find all paragraph tags and print their content
+    c = ''
+    paragraphs = soup.find_all('p')
+    for para in paragraphs:
+        c += para.get_text()
+        c += '\n'
+    
+    return c
 
-        for tag in potential_tags:
-            for class_name in potential_classes:
-                container = soup.find(tag, class_=class_name)
-                if container:
-                    paragraphs = container.find_all('p')
-                    content = ' '.join(paragraph.text for paragraph in paragraphs)
-                    if content:
-                        break
-            if content:
-                break
-
-        if not content:
-            paragraphs = soup.find_all('p')
-            content = ' '.join(paragraph.text for paragraph in paragraphs)
-
-        return content if content.strip() else "Unable to extract meaningful content."
-
-    except requests.RequestException as e:
-        return f"Error fetching the article: {e}"
 def stocklyze_page():
     st.title("Stocklyze \U0001F9E0")
     st.write("Analyze live and historical market news sentiment for your selected stock ticker.")
