@@ -12,13 +12,29 @@ def scrape_article_text(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Extract article paragraphs (customize based on website structure)
-        paragraphs = soup.find_all('p')
-        content = ' '.join(paragraph.text for paragraph in paragraphs)
-        return content if content else "Unable to extract content."
+        potential_tags = ['article', 'div', 'main']
+        potential_classes = ['content', 'article-content', 'post-content', 'entry-content', 'main-content']
+        content = ""
+
+        for tag in potential_tags:
+            for class_name in potential_classes:
+                container = soup.find(tag, class_=class_name)
+                if container:
+                    paragraphs = container.find_all('p')
+                    content = ' '.join(paragraph.text for paragraph in paragraphs)
+                    if content:
+                        break
+            if content:
+                break
+
+        if not content:
+            paragraphs = soup.find_all('p')
+            content = ' '.join(paragraph.text for paragraph in paragraphs)
+
+        return content if content.strip() else "Unable to extract meaningful content."
+
     except requests.RequestException as e:
         return f"Error fetching the article: {e}"
-
 def stocklyze_page():
     st.title("Stocklyze \U0001F9E0")
     st.write("Analyze live and historical market news sentiment for your selected stock ticker.")
