@@ -1,5 +1,7 @@
 streamlit
-requests
-python-dotenv
 pandas
+requests
 beautifulsoup4
+transformers
+torch
+python-dotenv
