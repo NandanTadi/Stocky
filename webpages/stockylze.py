@@ -86,9 +86,7 @@ def stocklyze_page():
                     st.write(f"**Relevance Score**: {row['Relevance Score']}")
                     st.write(f"**Overall Sentiment**: {row['Overall Sentiment']}")
                     st.write(f"**Summary**: {row['Summary']}")
-
-                    if st.button(f"Read Full Text: {row['Title']}", key=row['Title']):
-                        st.write(f"**Full Text**: {row['Full Text']}")
+                    st.write(f"**Full Text**: {row['Full Text']}")
                     st.markdown(f"[Read Original Article]({row['URL']})")
                     st.write("---")
 
