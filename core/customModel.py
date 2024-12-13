@@ -8,7 +8,6 @@ def calculate_custom_sentiment(full_text, positive_keywords, neutral_keywords, n
     
     total_count = positive_count + neutral_count + negative_count
 
-    # Calculate sentiment scores
     if total_count > 0:
         positive_score = positive_count / total_count
         neutral_score = neutral_count / total_count
@@ -16,7 +15,6 @@ def calculate_custom_sentiment(full_text, positive_keywords, neutral_keywords, n
     else:
         positive_score = neutral_score = negative_score = 0
 
-    # Determine sentiment label
     if positive_score > max(neutral_score, negative_score):
         label = "Positive"
     elif negative_score > max(positive_score, neutral_score):
@@ -24,7 +22,6 @@ def calculate_custom_sentiment(full_text, positive_keywords, neutral_keywords, n
     else:
         label = "Neutral"
 
-    # Return custom sentiment results
     return label, {
         "Positive Score": positive_score,
         "Neutral Score": neutral_score,

@@ -36,17 +36,16 @@ def get_stock_details(ticker):
 
 def get_stock_time_series(ticker):
     params = {
-        "function": "TIME_SERIES_DAILY",  # AlphaVantage function for daily time series
+        "function": "TIME_SERIES_DAILY",
         "symbol": ticker,
         "apikey": API_KEY
     }
     
     try:
         response = requests.get(BASE_URL, params=params)
-        response.raise_for_status()  # Raise an error for bad HTTP responses
+        response.raise_for_status()
         data = response.json()
         
-        # Check if the response contains the expected data
         if "Time Series (Daily)" in data:
             return data["Time Series (Daily)"]
         else:

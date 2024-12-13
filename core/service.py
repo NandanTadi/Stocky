@@ -5,7 +5,6 @@ import streamlit as st
 from transformers import pipeline
 
     
-# Initialize FinBERT Sentiment Pipeline
 @st.cache_resource
 def get_sentiment_pipeline():
     return pipeline("sentiment-analysis", model="yiyanghkust/finbert-tone")
@@ -15,6 +14,5 @@ def scrape_article_text(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    # Extract content from paragraph tags
     full_text = '\n'.join(para.get_text() for para in soup.find_all('p'))
     return full_text or "No content available."

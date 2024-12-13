@@ -14,20 +14,17 @@ def stocklyze_page():
     st.title("Stocklyze \U0001F9E0")
     st.write("Analyze live and historical market news sentiment for your selected stock ticker.")
 
-    # User inputs
     ticker = st.text_input("Enter Stock Ticker (e.g., AAPL, TSLA):")
     sort_by = st.selectbox("Sort By", ["LATEST", "EARLIEST", "RELEVANCE"])
     time_from = st.date_input("Select Start Date (optional)")
     time_to = st.date_input("Select End Date (optional)")
     limit = st.slider("Limit Results", 50, 100, 50)
 
-    # Custom Sentiment Fields
     st.write("### Customize Sentiment Analysis")
     positive_keywords = st.text_input("Enter Positive Keywords (comma-separated)").split(",")
     neutral_keywords = st.text_input("Enter Neutral Keywords (comma-separated)").split(",")
     negative_keywords = st.text_input("Enter Negative Keywords (comma-separated)").split(",")
 
-    # Convert dates to API-compatible strings
     time_from_str = time_from.strftime("%Y%m%dT%H%M") if time_from else None
     time_to_str = time_to.strftime("%Y%m%dT%H%M") if time_to else None
 
@@ -46,16 +43,14 @@ def stocklyze_page():
 
                     for article in news_data:
                         full_text = scrape_article_text(article["url"])
-                        sentiment = sentiment_pipeline(full_text[:512])  # Truncate text to 512 tokens
+                        sentiment = sentiment_pipeline(full_text[:512])
                         sentiment_label = sentiment[0]["label"]
                         sentiment_score = sentiment[0]["score"]
 
-                        # Collect FinBERT sentiment and relevance
                         relevance_score = max(float(topic["relevance_score"]) for topic in article["topics"])
                         sentiments.append(sentiment_score)
                         relevance_scores.append(relevance_score)
 
-                        # Calculate custom sentiment if keywords are provided
                         if positive_keywords or neutral_keywords or negative_keywords:
                             custom_label, custom_scores = calculate_custom_sentiment(
                                 full_text, positive_keywords, neutral_keywords, negative_keywords
@@ -78,10 +73,8 @@ def stocklyze_page():
                             "URL": article["url"]
                         })
 
-                    # Use StockylzePredictor to make a prediction
                     prediction_result = predict(sentiments, relevance_scores, custom_sentiments)
 
-                    # Display Stockylze Prediction at the top
                     prediction_color = (
                         "green" if prediction_result["prediction"] == "Likely to Increase" 
                         else "red" if prediction_result["prediction"] == "Likely to Decrease" 
@@ -93,10 +86,8 @@ def stocklyze_page():
                     )
 
 
-                    # Convert articles to a DataFrame
                     df = pd.DataFrame(articles)
 
-                    # Display detailed sentiment analysis for each article
                     st.subheader(f"News Sentiment for {ticker.upper()}")
                     for _, row in df.iterrows():
                         st.write(f"### {row['Title']}")
@@ -107,11 +98,10 @@ def stocklyze_page():
                         st.write(f"**Custom Sentiment Label**: {row['Custom Sentiment Label']}")
                         st.write(f"**Custom Sentiment Scores**: {row['Custom Sentiment Scores']}")
                         st.write(f"**Summary**: {row['Summary']}")
-                        st.write(f"**Full Text**: {row['Full Text'][:500]}...")  # Show only first 500 characters
+                        st.write(f"**Full Text**: {row['Full Text'][:500]}...")
                         st.markdown(f"[Read Original Article]({row['URL']})")
                         st.write("---")
 
-                    # Display full DataFrame for summary view
                     st.subheader("Summary Table")
                     st.dataframe(df[[
                         "Title", "Source", "Published At", "Relevance Score",
